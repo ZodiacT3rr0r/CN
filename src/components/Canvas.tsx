@@ -181,6 +181,21 @@ function Canvas({
     }
   };
 
+  const handleRemoveEdge = () => {
+    const existingLinkIndex = links.findIndex(
+      (link) =>
+        (link.from === edgeWeightModal.from &&
+          link.to === edgeWeightModal.to) ||
+        (link.from === edgeWeightModal.to && link.to === edgeWeightModal.from)
+    );
+
+    if (existingLinkIndex !== -1) {
+      setLinks((prev) =>
+        prev.filter((_, index) => index !== existingLinkIndex)
+      );
+    }
+  };
+
   // Animate hello packet movement
   useEffect(() => {
     if (animations.length === 0) return;
@@ -442,6 +457,7 @@ function Canvas({
         isOpen={edgeWeightModal.isOpen}
         onClose={() => setEdgeWeightModal({ isOpen: false, from: "", to: "" })}
         onSubmit={handleEdgeWeightSubmit}
+        onRemove={handleRemoveEdge}
         fromNode={edgeWeightModal.from}
         toNode={edgeWeightModal.to}
         currentWeight={edgeWeightModal.currentWeight}

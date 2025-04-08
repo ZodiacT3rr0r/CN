@@ -20,10 +20,12 @@ interface PaletteProps {
   onReset: () => void;
   onShowHelloPackets: () => void;
   onShowNetworkLog: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onStartLSPFlooding?: () => void;
+  isHelloPhaseComplete?: boolean;
 }
 
 function Palette({
@@ -37,12 +39,14 @@ function Palette({
   onRedo,
   canUndo,
   canRedo,
+  onStartLSPFlooding,
+  isHelloPhaseComplete,
 }: PaletteProps) {
   const navigate = useNavigate();
 
   return (
     <div className="bg-neutral-900 border-b border-neutral-800 p-4 flex items-center justify-between h-16">
-      {/* Left side - Device Palette */}
+      {/* Left section - Back button and Device Palette */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => navigate("/")}
@@ -73,28 +77,43 @@ function Palette({
         </div>
       </div>
 
-      {/* Right side - Control Buttons */}
+      {/* Center section - Hello and Flooding buttons */}
       <div className="flex items-center gap-4">
-        <button
-          onClick={onReset}
-          className="btn btn-secondary flex items-center gap-2 hover:bg-neutral-700/80 h-10"
-        >
-          <Trash2 className="w-4 h-4" />
-          Reset
-        </button>
         <button
           onClick={onShowHelloPackets}
           className="btn btn-secondary flex items-center gap-2 hover:bg-neutral-700/80 h-10"
         >
           <Mail className="w-4 h-4" />
-          Show Hello Packets
+          Start Hello Phase
         </button>
+        <button
+          onClick={onStartLSPFlooding}
+          disabled={!isHelloPhaseComplete}
+          className={`btn btn-secondary flex items-center gap-2 ${
+            isHelloPhaseComplete
+              ? "hover:bg-green-700"
+              : "opacity-50 cursor-not-allowed"
+          } h-10`}
+        >
+          Start LSP Flooding
+        </button>
+      </div>
+
+      {/* Right section - Network Log, Reset, Undo, Redo */}
+      <div className="flex items-center gap-4">
         <button
           onClick={onShowNetworkLog}
           className="btn btn-secondary flex items-center gap-2 hover:bg-neutral-700/80 h-10"
         >
           <List className="w-4 h-4" />
           Show Network Log
+        </button>
+        <button
+          onClick={onReset}
+          className="btn btn-secondary flex items-center gap-2 hover:bg-neutral-700/80 h-10"
+        >
+          <Trash2 className="w-4 h-4" />
+          Reset
         </button>
         <button
           onClick={onUndo}
