@@ -5,6 +5,7 @@ interface EdgeWeightModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (weight: number) => void;
+  onRemove?: () => void;
   fromNode: string;
   toNode: string;
   currentWeight?: number;
@@ -14,6 +15,7 @@ function EdgeWeightModal({
   isOpen,
   onClose,
   onSubmit,
+  onRemove,
   fromNode,
   toNode,
   currentWeight,
@@ -32,7 +34,7 @@ function EdgeWeightModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
       <div className="bg-neutral-900 rounded-xl border border-neutral-800 w-[400px] p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-neutral-50 font-medium">
@@ -62,6 +64,18 @@ function EdgeWeightModal({
           </div>
 
           <div className="flex justify-end gap-2">
+            {currentWeight && onRemove && (
+              <button
+                type="button"
+                onClick={() => {
+                  onRemove();
+                  onClose();
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+              >
+                Remove Edge
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}
