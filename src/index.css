@@ -2,13 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
+.transition-none {
+  transition: none !important;
+}
+
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-neutral-800;
+  }
+  body {
+    @apply bg-neutral-950 text-neutral-50;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #root {
+    height: 100%;
+  }
+}
+
 @layer utilities {
   .bg-pattern {
-    --color: rgba(114, 114, 114, 0.3);
-    background-color: #191a1a;
-    background-image:
-      linear-gradient(0deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%, transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%, transparent),
-      linear-gradient(90deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%, transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%, transparent);
-    background-size: 55px 55px;
+    background-color: #0a0a0a;
+    background-image: linear-gradient(
+        rgba(255, 255, 255, 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-3 py-1.5 rounded-lg font-medium transition-colors duration-200 text-sm;
+  }
+
+  .btn-primary {
+    @apply bg-neutral-50 text-neutral-950 hover:bg-neutral-200;
+  }
+
+  .btn-secondary {
+    @apply bg-neutral-800 text-neutral-50 hover:bg-neutral-700;
+  }
+
+  .card {
+    @apply rounded-xl border border-neutral-800 bg-neutral-900 text-neutral-50 shadow-sm;
+  }
+
+  .input {
+    @apply flex h-9 w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm text-neutral-50 ring-offset-neutral-900 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 }

@@ -34,7 +34,10 @@ export interface Position {
 // Instance of a device placed on the canvas
 export interface DeviceInstance extends Device {
   instanceId: string;
+  deviceType: string;
+  name: string;
   position: Position;
+  interfaces: Interface[];
 
   // Optional config for simulating routing later
   ipAddress?: string;
@@ -47,6 +50,7 @@ export interface DeviceInstance extends Device {
 export interface Link {
   from: string;
   to: string;
+  weight: number;
 }
 
 // Network topology: who is connected to whom
@@ -56,8 +60,55 @@ export interface Topology {
 
 // Each node's computed routing table (shortest path by hops)
 export interface RoutingTable {
-  [destinationId: string]: {
+  [destination: string]: {
     nextHop: string;
-    hops: number;
+    cost: number;
   };
+}
+
+export interface Interface {
+  id: string;
+  name: string;
+  ipAddress: string;
+  subnetMask: string;
+}
+
+export interface DistanceVector {
+  [destination: string]: number;
+}
+
+export interface RoutingUpdate {
+  from: string;
+  distanceVector: DistanceVector;
+  timestamp: number;
+}
+
+export interface NetworkEvent {
+  id: string;
+  timestamp: Date;
+  type:
+    | "node_added"
+    | "node_moved"
+    | "link_created"
+    | "packet_sent"
+    | "node_removed";
+  details: {
+    nodeId?: string;
+    position?: { x: number; y: number };
+    fromNode?: string;
+    toNode?: string;
+    packetId?: number;
+  };
+}
+
+export interface NetworkState {
+  devices: DeviceInstance[];
+  links: Link[];
+  routingTables: Record<string, RoutingTable>;
+  distanceVectors: { [key: string]: DistanceVector };
+  networkEvents: NetworkEvent[];
+  routerCount: number;
+  pcCount: number;
+  switchCount: number;
+  action: string; // Description of what action caused this state
 }
