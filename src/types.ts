@@ -98,6 +98,7 @@ export interface NetworkEvent {
     fromNode?: string;
     toNode?: string;
     packetId?: number;
+    packetType?: string;
   };
 }
 
@@ -111,4 +112,10 @@ export interface NetworkState {
   pcCount: number;
   switchCount: number;
   action: string; // Description of what action caused this state
+}
+
+export interface LSPacket {
+  sourceId: string;
+  sequenceNumber: number;
+  neighbors: { id: string; cost: number }[];
 }

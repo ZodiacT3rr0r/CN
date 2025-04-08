@@ -1,5 +1,5 @@
 import React from "react";
-import { DeviceInstance, Link, RoutingTable } from "../types";
+import { DeviceInstance, Link, RoutingTable } from "../../types";
 
 interface RoutingPanelProps {
   devices: DeviceInstance[];
