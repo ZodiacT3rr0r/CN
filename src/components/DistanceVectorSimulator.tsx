@@ -1,6 +1,6 @@
 // App.tsx
 import { useState, useEffect } from "react";
-import { Router, MonitorSmartphone, HardDrive, ArrowLeft } from "lucide-react";
+import { Router, MonitorSmartphone, HardDrive } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Device,
@@ -27,6 +27,7 @@ interface NetworkState {
   routerCount: number;
   pcCount: number;
   switchCount: number;
+  action: string; // Description of what action caused this state
 }
 
 function DistanceVectorSimulator() {
@@ -50,6 +51,7 @@ function DistanceVectorSimulator() {
   const [deviceToDelete, setDeviceToDelete] = useState<string | null>(null);
   const [history, setHistory] = useState<NetworkState[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+  const [pendingHistoryAction, setPendingHistoryAction] = useState<string | null>(null);
 
   const availableDevices: Device[] = [
     { id: "router", icon: Router, color: "bg-blue-500", type: "router" },
@@ -87,26 +89,25 @@ function DistanceVectorSimulator() {
       interfaces: [],
     };
 
-    setDevices((prev) => {
-      const newDevices = [...prev, newDevice];
-      // Update counts immediately after device state change
-      if (device.type === "router") setRouterCount((c) => c + 1);
-      if (device.type === "pc") setPcCount((c) => c + 1);
-      if (device.type === "switch") setSwitchCount((c) => c + 1);
+    // Update counts immediately
+    if (device.type === "router") setRouterCount((c) => c + 1);
+    if (device.type === "pc") setPcCount((c) => c + 1);
+    if (device.type === "switch") setSwitchCount((c) => c + 1);
 
-      // Add network event
-      addNetworkEvent({
-        type: "node_added",
-        details: {
-          nodeId: instanceId,
-          position: { x, y },
-        },
-      });
-
-      // Save to history immediately after all state updates
-      setTimeout(() => saveToHistory(`add_${device.type}`), 0);
-      return newDevices;
+    // Add network event
+    addNetworkEvent({
+      type: "node_added",
+      details: {
+        nodeId: instanceId,
+        position: { x, y },
+      },
     });
+
+    // Update devices state
+    setDevices((prev) => [...prev, newDevice]);
+
+    // Set pending history action
+    setPendingHistoryAction(`add_${device.type}`);
   };
 
   const handleMove = (instanceId: string, x: number, y: number) => {
@@ -126,8 +127,6 @@ function DistanceVectorSimulator() {
         },
       });
 
-      // Save to history immediately after state update
-      setTimeout(() => saveToHistory(`move_${instanceId}`), 0);
       return newDevices;
     });
   };
@@ -140,8 +139,8 @@ function DistanceVectorSimulator() {
         toNode: to,
       },
     });
-    // Save to history after link creation
-    setTimeout(() => saveToHistory(`create_link_${from}_${to}`), 0);
+    // Save link operation to history
+    setPendingHistoryAction(`link_add_${from}_${to}`);
   };
 
   const handlePacketSent = (from: string, to: string, packetId: number) => {
@@ -518,6 +517,16 @@ function DistanceVectorSimulator() {
 
   // Save current state to history
   const saveToHistory = (action: string) => {
+    // Save history for node additions, removals, and link operations
+    if (!action.startsWith('add_') && !action.startsWith('delete_') && !action.startsWith('link_')) {
+      return;
+    }
+
+    // If we're not at the end of history, remove future states
+    if (currentHistoryIndex < history.length - 1) {
+      setHistory((prev) => prev.slice(0, currentHistoryIndex + 1));
+    }
+
     const currentState = {
       devices: [...devices],
       links: [...links],
@@ -527,14 +536,10 @@ function DistanceVectorSimulator() {
       routerCount,
       pcCount,
       switchCount,
-      action, // Store the action that caused this state change
+      action,
     };
 
-    // If we're not at the end of history, remove future states
-    if (currentHistoryIndex < history.length - 1) {
-      setHistory((prev) => prev.slice(0, currentHistoryIndex + 1));
-    }
-
+    // Add new state to history
     setHistory((prev) => [...prev, currentState]);
     setCurrentHistoryIndex((prev) => prev + 1);
   };
@@ -543,6 +548,7 @@ function DistanceVectorSimulator() {
   const handleUndo = () => {
     if (currentHistoryIndex > 0) {
       const previousState = history[currentHistoryIndex - 1];
+      console.log(previousState);
       setDevices(previousState.devices);
       setLinks(previousState.links);
       setRoutingTables(previousState.routingTables);
@@ -552,6 +558,17 @@ function DistanceVectorSimulator() {
       setPcCount(previousState.pcCount);
       setSwitchCount(previousState.switchCount);
       setCurrentHistoryIndex(currentHistoryIndex - 1);
+    } else if (currentHistoryIndex === 0) {
+      // Handle first undo - restore to empty state
+      setDevices([]);
+      setLinks([]);
+      setRoutingTables({});
+      setDistanceVectors({});
+      setNetworkEvents([]);
+      setRouterCount(0);
+      setPcCount(0);
+      setSwitchCount(0);
+      setCurrentHistoryIndex(-1);
     }
   };
 
@@ -596,41 +613,47 @@ function DistanceVectorSimulator() {
     );
     if (!deviceToDeleteObj) return;
 
-    setDevices((prev) => {
-      const newDevices = prev.filter((d) => d.instanceId !== deviceToDelete);
+    // Update device counts
+    if (deviceToDeleteObj.deviceType === "router")
+      setRouterCount((c) => c - 1);
+    if (deviceToDeleteObj.deviceType === "pc") setPcCount((c) => c - 1);
+    if (deviceToDeleteObj.deviceType === "switch")
+      setSwitchCount((c) => c - 1);
 
-      // Remove all links connected to this device
-      setLinks((prev) =>
-        prev.filter(
-          (link) => link.from !== deviceToDelete && link.to !== deviceToDelete
-        )
-      );
+    // Clear selection
+    setSelected(null);
 
-      // Update device counts
-      if (deviceToDeleteObj.deviceType === "router")
-        setRouterCount((c) => c - 1);
-      if (deviceToDeleteObj.deviceType === "pc") setPcCount((c) => c - 1);
-      if (deviceToDeleteObj.deviceType === "switch")
-        setSwitchCount((c) => c - 1);
-
-      // Clear selection
-      setSelected(null);
-
-      // Add network event
-      addNetworkEvent({
-        type: "node_removed",
-        details: {
-          nodeId: deviceToDelete,
-        },
-      });
-
-      setDeviceToDelete(null);
-
-      // Save to history immediately after all state updates
-      setTimeout(() => saveToHistory(`delete_${deviceToDelete}`), 0);
-      return newDevices;
+    // Add network event
+    addNetworkEvent({
+      type: "node_removed",
+      details: {
+        nodeId: deviceToDelete,
+      },
     });
+
+    // Update devices state
+    setDevices((prev) => prev.filter((d) => d.instanceId !== deviceToDelete));
+
+    // Remove all links connected to this device
+    setLinks((prev) =>
+      prev.filter(
+        (link) => link.from !== deviceToDelete && link.to !== deviceToDelete
+      )
+    );
+
+    setDeviceToDelete(null);
+
+    // Set pending history action
+    setPendingHistoryAction(`delete_${deviceToDelete}`);
   };
+
+  // Effect to save to history after state updates
+  useEffect(() => {
+    if (pendingHistoryAction) {
+      saveToHistory(pendingHistoryAction);
+      setPendingHistoryAction(null);
+    }
+  }, [devices, links, pendingHistoryAction]);
 
   return (
     <div className="flex flex-col h-screen bg-pattern">
@@ -643,9 +666,11 @@ function DistanceVectorSimulator() {
         onShowNetworkLog={handleShowNetworkLog}
         onUndo={handleUndo}
         onRedo={handleRedo}
-        canUndo={currentHistoryIndex > 0}
+        canUndo={currentHistoryIndex >= 0}
         canRedo={currentHistoryIndex < history.length - 1}
       />
+
+      <button onClick={()=>{console.log(history); console.log(devices)}}>hello</button>
 
       <div className="flex flex-1 overflow-hidden">
         <RoutingPanel
