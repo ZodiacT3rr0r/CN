@@ -2,10 +2,10 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate,
 } from "react-router-dom";
 import Home from "./components/Home";
-import DistanceVectorSimulator from "./components/DistanceVectorSimulator";
+import DistanceVectorSimulator from "./components/distance-vector/DistanceVectorSimulator";
+import LinkStateSimulator from "./components/link-state/LinkStateSimulator";
 
 function App() {
   return (
@@ -13,7 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/distance-vector" element={<DistanceVectorSimulator />} />
-        <Route path="/link-state" element={<Navigate to="/" />} />
+        <Route path="/link-state" element={<LinkStateSimulator />} />
       </Routes>
     </Router>
   );

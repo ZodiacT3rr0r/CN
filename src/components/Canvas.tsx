@@ -1,7 +1,7 @@
 // components/Canvas.tsx
-import React, { useState, useRef, useEffect } from "react";
-import { Device, DeviceInstance, Link } from "../types";
-import { Mail } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Device, DeviceInstance, Link, LinkState } from "../types";
+import { Mail, Network, Route } from "lucide-react";
 import EdgeWeightModal from "./EdgeWeightModal";
 
 interface CanvasProps {
@@ -10,15 +10,19 @@ interface CanvasProps {
   links: Link[];
   setLinks: React.Dispatch<React.SetStateAction<Link[]>>;
   selected: string | null;
-  setSelected: (id: string | null) => void;
+  setSelected: React.Dispatch<React.SetStateAction<string | null>>;
   onDrop: (device: Device, x: number, y: number) => void;
   onMove: (instanceId: string, x: number, y: number) => void;
-  animations: { from: string; to: string; id: number; type: "hello" | "dv" }[];
-  setAnimations: React.Dispatch<
-    React.SetStateAction<
-      { from: string; to: string; id: number; type: "hello" | "dv" }[]
-    >
-  >;
+  animatedPackets: Array<{
+    id: number;
+    from: string;
+    to: string;
+    type: "hello" | "dv" | "lsp";
+    lspData?: LinkState;
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+    progress: number;
+  }>;
 }
 
 function Canvas({
@@ -30,8 +34,7 @@ function Canvas({
   setSelected,
   onDrop,
   onMove,
-  animations,
-  setAnimations,
+  animatedPackets
 }: CanvasProps) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [offset, setOffset] = useState<{ x: number; y: number }>({
@@ -39,7 +42,6 @@ function Canvas({
     y: 0,
   });
   const wasDraggingRef = useRef(false);
-  const [animatedPackets, setAnimatedPackets] = useState<any[]>([]);
   const [edgeWeightModal, setEdgeWeightModal] = useState<{
     isOpen: boolean;
     from: string;
@@ -133,13 +135,10 @@ function Canvas({
       );
 
       if (existingLinkIndex !== -1) {
-        setEdgeWeightModal({
-          isOpen: true,
-          from: links[existingLinkIndex].from,
-          to: links[existingLinkIndex].to,
-          currentWeight: links[existingLinkIndex].weight,
-        });
+        // Remove existing link
+        setLinks(prev => prev.filter((_, index) => index !== existingLinkIndex));
       } else {
+        // Create new link
         setEdgeWeightModal({
           isOpen: true,
           from: selected,
@@ -180,50 +179,6 @@ function Canvas({
       ]);
     }
   };
-
-  // Animate hello packet movement
-  useEffect(() => {
-    if (animations.length === 0) return;
-
-    const packets = animations
-      .map(({ from, to, id }) => {
-        const fromDevice = devices.find((d) => d.instanceId === from);
-        const toDevice = devices.find((d) => d.instanceId === to);
-        if (!fromDevice || !toDevice) return null;
-
-        return {
-          id,
-          from,
-          to,
-          start: fromDevice.position,
-          end: toDevice.position,
-          progress: 0,
-        };
-      })
-      .filter(Boolean);
-
-    setAnimatedPackets(packets);
-
-    const interval = setInterval(() => {
-      setAnimatedPackets((prev) => {
-        const next = prev
-          .map((p) => ({
-            ...p,
-            progress: p.progress + 0.01, // adjust this for smoother/slower
-          }))
-          .filter((p) => p.progress <= 1); // ensure packet fully reaches
-
-        if (next.length === 0) {
-          clearInterval(interval);
-          setAnimations([]); // signal App to continue to next wave
-        }
-
-        return next;
-      });
-    }, 20); // slower interval = smoother animation
-
-    return () => clearInterval(interval);
-  }, [animations]);
 
   return (
     <>
@@ -317,75 +272,41 @@ function Canvas({
           </defs>
 
           {/* Render animated packets */}
-          {animations.map(({ from, to, id, type }) => {
-            const fromDevice = devices.find((d) => d.instanceId === from);
-            const toDevice = devices.find((d) => d.instanceId === to);
+          {animatedPackets.map((packet) => {
+            const { start, end, progress, id, type } = packet;
+            const cx = start.x + (end.x - start.x) * progress;
+            const cy = start.y + (end.y - start.y) * progress;
 
-            if (!fromDevice || !toDevice) return null;
-
-            const x1 = fromDevice.position.x;
-            const y1 = fromDevice.position.y;
-            const x2 = toDevice.position.x;
-            const y2 = toDevice.position.y;
-
-            if (type === "dv") {
-              // Pulse animation for Distance Vector updates
-              return (
-                <g key={id}>
-                  <circle
-                    cx={(x1 + x2) / 2}
-                    cy={(y1 + y2) / 2}
-                    r="8"
-                    className="fill-blue-500/50"
-                    filter="url(#pulse)"
-                  >
-                    <animate
-                      attributeName="r"
-                      from="8"
-                      to="16"
-                      dur="1s"
-                      begin="0s"
-                      repeatCount="1"
-                    />
-                    <animate
-                      attributeName="opacity"
-                      from="1"
-                      to="0"
-                      dur="1s"
-                      begin="0s"
-                      repeatCount="1"
-                    />
-                  </circle>
-                </g>
-              );
+            let icon;
+            let color;
+            switch (type) {
+              case "hello":
+                icon = <Mail className="w-8 h-8" />;
+                color = "text-blue-500";
+                break;
+              case "lsp":
+                icon = <Network className="w-8 h-8" />;
+                color = "text-green-500";
+                break;
+              case "dv":
+                icon = <Route className="w-8 h-8" />;
+                color = "text-purple-500";
+                break;
             }
 
-            // Default packet animation for Hello packets
             return (
-              <circle
-                key={id}
-                cx={x1}
-                cy={y1}
-                r="4"
-                className="fill-yellow-500"
+              <foreignObject
+                key={`packet-${id}`}
+                x={cx - 16}
+                y={cy - 16}
+                width={32}
+                height={32}
+                style={{ opacity: 1 }}
               >
-                <animate
-                  attributeName="cx"
-                  from={x1}
-                  to={x2}
-                  dur="1s"
-                  begin="0s"
-                  fill="freeze"
-                />
-                <animate
-                  attributeName="cy"
-                  from={y1}
-                  to={y2}
-                  dur="1s"
-                  begin="0s"
-                  fill="freeze"
-                />
-              </circle>
+                <div className={`${color} w-8 h-8`}>
+                  {icon}
+                </div>
+              </foreignObject>
             );
           })}
         </svg>

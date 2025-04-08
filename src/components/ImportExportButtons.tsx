@@ -20,7 +20,7 @@ function ImportExportButtons({ onImport, onExport }: ImportExportButtonsProps) {
   };
 
   return (
-    <div className="absolute bottom-4 right-4 flex gap-2">
+    <div className="absolute bottom-8 right-8 flex gap-2">
       <label className="btn btn-secondary flex items-center gap-2 cursor-pointer">
         <Upload className="w-4 h-4" />
         Import

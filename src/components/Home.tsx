@@ -37,7 +37,7 @@ const Home = () => {
               routers build a complete topology map and compute shortest paths.
             </p>
             <div className="text-blue-500 hover:text-blue-400">
-              Coming Soon →
+            Try it now →
             </div>
           </div>
         </div>

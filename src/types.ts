@@ -1,28 +1,17 @@
 import { Circle } from "lucide-react";
 
 export interface Device {
-  id: string;
-  type: "pc" | "router" | "switch";
+  id: "router" | "pc" | "switch";
+  type: "router" | "pc" | "switch";
   color: string;
   icon: typeof Circle;
 }
 
-// Enriched versions of each device type
-export interface SwitchDevice extends Device {
-  type: "switch";
-  ports: number;
-}
-
+// Router device with specific properties
 export interface RouterDevice extends Device {
   type: "router";
   gateway: string;
   subnet: string;
-}
-
-export interface PCDevice extends Device {
-  type: "pc";
-  ipAddress: string;
-  dns: string;
 }
 
 // Common position interface for canvas placement
@@ -34,7 +23,7 @@ export interface Position {
 // Instance of a device placed on the canvas
 export interface DeviceInstance extends Device {
   instanceId: string;
-  deviceType: string;
+  deviceType: "router" | "pc" | "switch";
   name: string;
   position: Position;
   interfaces: Interface[];
@@ -84,21 +73,16 @@ export interface RoutingUpdate {
 }
 
 export interface NetworkEvent {
-  id: string;
-  timestamp: Date;
-  type:
-    | "node_added"
-    | "node_moved"
-    | "link_created"
-    | "packet_sent"
-    | "node_removed";
+  type: "node_added" | "node_removed" | "link_created" | "link_removed" | "packet_sent";
   details: {
     nodeId?: string;
     position?: { x: number; y: number };
-    fromNode?: string;
-    toNode?: string;
+    from?: string;
+    to?: string;
     packetId?: number;
   };
+  id?: string;
+  timestamp?: Date;
 }
 
 export interface NetworkState {
@@ -108,7 +92,29 @@ export interface NetworkState {
   distanceVectors: { [key: string]: DistanceVector };
   networkEvents: NetworkEvent[];
   routerCount: number;
-  pcCount: number;
-  switchCount: number;
   action: string; // Description of what action caused this state
+}
+
+export interface LinkState {
+  nodeId: string;
+  neighbors: { [key: string]: number }; // neighborId -> cost
+  sequenceNumber: number;
+  timestamp: number;
+}
+
+export interface LinkStateRoutingTable {
+  destination: string;
+  nextHop: string;
+  cost: number;
+  path: string[];
+}
+
+export interface LinkStateNetworkState {
+  devices: DeviceInstance[];
+  links: Link[];
+  linkStates: { [key: string]: LinkState };
+  routingTables: { [key: string]: LinkStateRoutingTable[] };
+  networkEvents: NetworkEvent[];
+  routerCount: number;
+  action: string;
 }
