@@ -115,7 +115,7 @@ export function useLinkStateRouting(devices: DeviceInstance[], links: Link[]) {
     
     setLinkStates(newLinkStates);
     setRoutingTables(newRoutingTables);
-  }, [devices, buildAdjacencyList, computeShortestPaths, linkStates]);
+  }, [devices, buildAdjacencyList, computeShortestPaths]);
 
   // Reset routing state
   const resetRouting = useCallback(() => {

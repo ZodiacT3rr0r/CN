@@ -6,11 +6,11 @@ import {
   Mail,
   RotateCcw,
   RotateCw,
-  Trash2,
   List,
   Play,
   Pause,
   StepForward,
+  Network,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -82,10 +82,10 @@ function Palette({
                 onDragStart={(e) => {
                   e.dataTransfer.setData("deviceId", device.id);
                 }}
-                className={`${device.color} w-10 h-10 rounded-xl flex items-center justify-center cursor-move transition-transform hover:scale-105`}
+                className={`${device.color} w-8 h-8 rounded-xl flex items-center justify-center cursor-move transition-transform hover:scale-105`}
               >
                 {React.createElement(device.icon, {
-                  className: "w-6 h-6 text-neutral-50",
+                  className: "w-4 h-4 text-neutral-50",
                 })}
               </div>
             ))}
@@ -164,62 +164,54 @@ function Palette({
           // Link State Simulator Controls
           <>
             {/* Hello Packets Control */}
-            <div className="bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10">
+            <button
+              onClick={onShowHelloPackets}
+              className="bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10 hover:bg-neutral-700/80 transition-colors"
+              title="Show Hello Packets"
+            >
               <h2 className="text-neutral-50 font-medium">Hello Packets</h2>
               <div className="flex gap-2">
-                <button
-                  onClick={onShowHelloPackets}
-                  className="btn btn-secondary flex items-center gap-2 hover:bg-neutral-700/80"
-                  title="Show Hello Packets"
-                >
-                  <Mail className="w-4 h-4" />
-                </button>
+                <Mail className="w-4 h-4" />
               </div>
-            </div>
+            </button>
 
             {/* LSP Flooding Control */}
-            <div className="bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10">
+            <button
+              onClick={onLSPFlooding}
+              className={`bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10 hover:bg-neutral-700/80 transition-colors ${
+                isLSPFlooding ? "bg-blue-500/20" : ""
+              }`}
+              title="LSP Flooding"
+            >
               <h2 className="text-neutral-50 font-medium">LSP Flooding</h2>
               <div className="flex gap-2">
-                <button
-                  onClick={onLSPFlooding}
-                  className={`btn btn-secondary flex items-center gap-2 hover:bg-neutral-700/80 ${
-                    isLSPFlooding ? "bg-blue-500/20" : ""
-                  }`}
-                  title="LSP Flooding"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <Network className="w-4 h-4" />
               </div>
-            </div>
+            </button>
 
             {/* Network Log Control */}
-            <div className="bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10">
+            <button
+              onClick={onShowNetworkLog}
+              className="bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10 hover:bg-neutral-700/80 transition-colors"
+              title="Show Network Log"
+            >
               <h2 className="text-neutral-50 font-medium">Network Log</h2>
               <div className="flex gap-2">
-                <button
-                  onClick={onShowNetworkLog}
-                  className="btn btn-secondary flex items-center gap-2 hover:bg-neutral-700/80"
-                  title="Show Network Log"
-                >
-                  <List className="w-4 h-4" />
-                </button>
+                <List className="w-4 h-4" />
               </div>
-            </div>
+            </button>
 
             {/* Reset Control */}
-            <div className="bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10">
+            <button
+              onClick={onReset}
+              className="bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10 hover:bg-neutral-700/80 transition-colors"
+              title="Reset"
+            >
               <h2 className="text-neutral-50 font-medium">Reset</h2>
               <div className="flex gap-2">
-                <button
-                  onClick={onReset}
-                  className="btn btn-secondary flex items-center gap-2 hover:bg-neutral-700/80"
-                  title="Reset"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
+                <RotateCcw className="w-4 h-4" />
               </div>
-            </div>
+            </button>
 
             {/* History Controls */}
             <div className="bg-neutral-800/50 rounded-lg px-4 py-2 border border-neutral-700 flex items-center gap-4 h-10">
