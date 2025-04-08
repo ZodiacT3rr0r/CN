@@ -548,7 +548,6 @@ function DistanceVectorSimulator() {
   const handleUndo = () => {
     if (currentHistoryIndex > 0) {
       const previousState = history[currentHistoryIndex - 1];
-      console.log(previousState);
       setDevices(previousState.devices);
       setLinks(previousState.links);
       setRoutingTables(previousState.routingTables);
@@ -669,8 +668,6 @@ function DistanceVectorSimulator() {
         canUndo={currentHistoryIndex >= 0}
         canRedo={currentHistoryIndex < history.length - 1}
       />
-
-      <button onClick={()=>{console.log(history); console.log(devices)}}>hello</button>
 
       <div className="flex flex-1 overflow-hidden">
         <RoutingPanel
